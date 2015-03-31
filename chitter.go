@@ -64,11 +64,11 @@ func sendMessage(message Message) {
 	if message.dst == 0 {
 		for k := range dict {
 			conn := dict[k]
-			conn.Write([]byte(strconv.Itoa(message.src) + ":" + message.msg))
+			conn.Write([]byte(strconv.Itoa(message.src) + ": " + message.msg + "\n"))
 		}
 	} else {
 		conn := dict[message.dst]
-		conn.Write([]byte(strconv.Itoa(message.src) + ":" + message.msg))
+		conn.Write([]byte(strconv.Itoa(message.src) + ": " + message.msg + "\n"))
 	}
 	return
 }
@@ -78,28 +78,39 @@ func handleRequest(conn net.Conn, clientId int) {
 	for {
 		// Make a buffer to hold incoming data.
 		buf := make([]byte, 1024)
+
 		// Read the incoming connection into the buffer.
 		reqLen, err := conn.Read(buf)
 		if err != nil {
-			continue
+			break
 		}
 
 		// Parse data
 		data := buf[0 : reqLen-1]
 		msg := string(data)
-		id, message := strings.Split(msg, ":")[0], strings.Split(msg, ":")[1]
+		slices := strings.Split(msg, ":")
+		id := strings.TrimSpace(slices[0])
+		message := ""
+		print(len(slices))
+		if len(slices) > 1 {
+			count := len(slices)
+			for i := 1; i < count-1; i++ {
+				message += (slices[i] + ":")
+			}
+			message += slices[count-1]
+		}
+
 		// Send messages
 		if idnum, err := strconv.Atoi(id); err == nil {
 			msg := Message{src: clientId, dst: idnum, msg: message}
 			sendMessage(msg)
 		} else if id == "whoami" {
-			print("Who cares who the fuck you are!")
+			conn.Write([]byte("chitter: " + strconv.Itoa(clientId)))
 		} else if id == "all" {
 			msg := Message{src: clientId, dst: 0, msg: message}
 			sendMessage(msg)
 		}
-
-		// Send a response back to person contacting us.
 	}
+	delete(dict, clientId)
 	conn.Close()
 }
