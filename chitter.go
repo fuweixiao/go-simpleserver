@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -89,31 +90,25 @@ func handleRequest(conn net.Conn, clientId int) {
 		}
 
 		// Parse data
-		data := buf[0 : reqLen-1]
-		msg := string(data)
-		slices := strings.Split(msg, ":")
-		id := strings.TrimSpace(slices[0])
-		message := ""
-		count := len(slices)
-		if count > 1 {
-			for i := 1; i < count-1; i++ {
-				message += (slices[i] + ":")
-			}
-			message += slices[count-1]
-		}
-
-		// Send messages
-		if idnum, err := strconv.Atoi(id); err == nil {
-			msg := Message{src: clientId, dst: idnum, msg: message}
-			sendMessage(msg)
-		} else if id == "whoami" && count != 1 {
-			conn.Write([]byte("chitter: " + strconv.Itoa(clientId) + "\n"))
-		} else if id == "all" && count != 1 {
-			msg := Message{src: clientId, dst: 0, msg: message}
+		data := string(buf[0 : reqLen-1])
+		slices := regexp.MustCompile(":").Split(data, 2)
+		if len(slices) == 1 {
+			msg := Message{src: clientId, dst: 0, msg: slices[0]}
 			sendMessage(msg)
 		} else {
-			msg := Message{src: clientId, dst: 0, msg: msg}
-			sendMessage(msg)
+			id := strings.TrimSpace(slices[0])
+			if idnum, err := strconv.Atoi(id); err == nil {
+				msg := Message{src: clientId, dst: idnum, msg: slices[1]}
+				sendMessage(msg)
+			} else if id == "whoami" {
+				conn.Write([]byte("chitter: " + strconv.Itoa(clientId) + "\n"))
+			} else if id == "all" {
+				msg := Message{src: clientId, dst: 0, msg: slices[1]}
+				sendMessage(msg)
+			} else {
+				msg := Message{src: clientId, dst: 0, msg: data}
+				sendMessage(msg)
+			}
 		}
 	}
 	delete(dict, clientId)
