@@ -54,9 +54,6 @@ func main() {
 		}
 		clientId++
 
-		// Map clientId to connections
-		dict[clientId] = conn
-
 		// Handle connections in a new goroutine.
 		go handleRequest(conn, clientId, msgChan)
 	}
