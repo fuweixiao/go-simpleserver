@@ -67,8 +67,9 @@ func sendMessage(message Message) {
 			conn.Write([]byte(strconv.Itoa(message.src) + ": " + message.msg + "\n"))
 		}
 	} else {
-		conn := dict[message.dst]
-		conn.Write([]byte(strconv.Itoa(message.src) + ": " + message.msg + "\n"))
+		if conn, ok := dict[message.dst]; ok {
+			conn.Write([]byte(strconv.Itoa(message.src) + ": " + message.msg + "\n"))
+		}
 	}
 	return
 }
