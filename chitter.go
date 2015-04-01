@@ -38,7 +38,7 @@ func main() {
 	// Close the listener when the application closes.
 	defer l.Close()
 
-	fmt.Println("Listening on " + "localhost" + ":" + "3333")
+	fmt.Println("Listening on " + ":" + "3333")
 	clientId := 0
 
 	// Handle connections
@@ -62,11 +62,13 @@ func main() {
 // Send messages to other id
 func sendMessage(message Message) {
 	if message.dst == 0 {
+		//broadcast to all existing connections
 		for k := range dict {
 			conn := dict[k]
 			conn.Write([]byte(strconv.Itoa(message.src) + ": " + message.msg + "\n"))
 		}
 	} else {
+		//private messages to specific user
 		if conn, ok := dict[message.dst]; ok {
 			conn.Write([]byte(strconv.Itoa(message.src) + ": " + message.msg + "\n"))
 		}
@@ -104,9 +106,9 @@ func handleRequest(conn net.Conn, clientId int) {
 		if idnum, err := strconv.Atoi(id); err == nil {
 			msg := Message{src: clientId, dst: idnum, msg: message}
 			sendMessage(msg)
-		} else if id == "whoami" {
-			conn.Write([]byte("chitter: " + strconv.Itoa(clientId)))
-		} else if id == "all" {
+		} else if id == "whoami" && len(slices) != 1 {
+			conn.Write([]byte("chitter: " + strconv.Itoa(clientId) + "\n"))
+		} else if id == "all" && len(slices) != 1 {
 			msg := Message{src: clientId, dst: 0, msg: message}
 			sendMessage(msg)
 		} else {
