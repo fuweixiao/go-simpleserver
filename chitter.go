@@ -94,8 +94,8 @@ func handleRequest(conn net.Conn, clientId int) {
 		slices := strings.Split(msg, ":")
 		id := strings.TrimSpace(slices[0])
 		message := ""
-		if len(slices) > 1 {
-			count := len(slices)
+		count := len(slices)
+		if count > 1 {
 			for i := 1; i < count-1; i++ {
 				message += (slices[i] + ":")
 			}
@@ -106,13 +106,13 @@ func handleRequest(conn net.Conn, clientId int) {
 		if idnum, err := strconv.Atoi(id); err == nil {
 			msg := Message{src: clientId, dst: idnum, msg: message}
 			sendMessage(msg)
-		} else if id == "whoami" && len(slices) != 1 {
+		} else if id == "whoami" && count != 1 {
 			conn.Write([]byte("chitter: " + strconv.Itoa(clientId) + "\n"))
-		} else if id == "all" && len(slices) != 1 {
+		} else if id == "all" && count != 1 {
 			msg := Message{src: clientId, dst: 0, msg: message}
 			sendMessage(msg)
 		} else {
-			msg := Message{src: clientId, dst: 0, msg: id}
+			msg := Message{src: clientId, dst: 0, msg: msg}
 			sendMessage(msg)
 		}
 	}
