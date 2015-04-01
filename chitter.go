@@ -30,7 +30,7 @@ func main() {
 
 	// Listen for incoming connections.
 
-	l, err := net.Listen("tcp", "localhost"+":"+port)
+	l, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		fmt.Println("Error listening:", err.Error()+port)
 		os.Exit(1)
@@ -91,7 +91,6 @@ func handleRequest(conn net.Conn, clientId int) {
 		slices := strings.Split(msg, ":")
 		id := strings.TrimSpace(slices[0])
 		message := ""
-		print(len(slices))
 		if len(slices) > 1 {
 			count := len(slices)
 			for i := 1; i < count-1; i++ {
@@ -108,6 +107,9 @@ func handleRequest(conn net.Conn, clientId int) {
 			conn.Write([]byte("chitter: " + strconv.Itoa(clientId)))
 		} else if id == "all" {
 			msg := Message{src: clientId, dst: 0, msg: message}
+			sendMessage(msg)
+		} else {
+			msg := Message{src: clientId, dst: 0, msg: id}
 			sendMessage(msg)
 		}
 	}
