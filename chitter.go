@@ -37,7 +37,7 @@ func main() {
 	// Close the listener when the application closes.
 	defer l.Close()
 
-	fmt.Println("Listening on " + ":" + "3333")
+	fmt.Println("Listening on " + ":" + port)
 	clientId := 0
 
 	// channel and Thread to send messages
@@ -103,7 +103,7 @@ func handleRequest(conn net.Conn, clientId int, msgChan chan Message) {
 		// Read the incoming connection into the buffer.
 		reqLen, err := conn.Read(buf)
 		if err != nil {
-			signal = Message{src: clientId, dst: -1, msg: "", conn: conn}
+			signal = Message{src: clientId, dst: -2, msg: "", conn: conn}
 			msgChan <- signal
 			break
 		}
